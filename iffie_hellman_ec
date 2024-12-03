@@ -1,0 +1,51 @@
+a = 1
+b = 1
+p = 23
+G = (6, 4)
+k1 = 8
+k2 = 9
+def check_curve(a, b, p):
+    return (4 * a ** 3 + 27 * b ** 2) % p != 0
+def add_points(P, Q, a, p):
+    if P == Q:
+        if P[1] == 0:
+            return None
+        m = (3 * P[0] ** 2 + a) * pow(2 * P[1], -1, p) % p
+    else:
+        if P[0] == Q[0]:
+            return None
+        m = (Q[1] - P[1]) * pow(Q[0] - P[0], -1, p) % p
+    x3 = (m ** 2 - P[0] - Q[0]) % p
+    y3 = (m * (P[0] - x3) - P[1]) % p
+    return (x3, y3)
+def multiply_point(k, P, a, p):
+    result = None
+    current = P
+    while k > 0:
+        if k % 2 == 1:
+            result = add_points(result, current, a, p) if result else current
+        current = add_points(current, current, a, p)
+        k = k / 2
+        k = int(k)
+    return result
+def diffie_hellman_ec(a, b, p, G, k1, k2):
+    if not check_curve(a, b, p):
+        print("Эллиптическая кривая некорректна")
+        return
+    print("Эллиптическая кривая корректна")
+    print(f"Коэффициенты: a={a}, b={b}, модуль p={p}")
+    print(f"Базовая точка: G={G}")
+    print(f"Секретные ключи: k1={k1}, k2={k2}")
+    point_A = multiply_point(k1, G, a, p)
+    point_B = multiply_point(k2, G, a, p)
+    print(f"k1 * G = {point_A}")
+    print(f"k2 * G = {point_B}")
+    secret_A = multiply_point(k1, point_B, a, p)
+    secret_B = multiply_point(k2, point_A, a, p)
+    print(f"Общий секрет (A): {secret_A}")
+    print(f"Общий секрет (B): {secret_B}")
+    if secret_A == secret_B:
+        print("Общий секрет совпадает.")
+    else:
+        print("Секреты не совпадают.")
+diffie_hellman_ec(a, b, p, G, k1, k2)
